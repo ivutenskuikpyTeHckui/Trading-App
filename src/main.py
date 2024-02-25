@@ -1,6 +1,5 @@
-
 from fastapi import FastAPI, Request, status, Depends
-
+from fastapi.staticfiles import StaticFiles
 from fastapi_users import fastapi_users, FastAPIUsers
 
 from src.auth.base_config import auth_backend
@@ -9,6 +8,7 @@ from src.auth.models import User
 from src.auth.schemas import UserCreate, UserRead
 
 from src.operations.router import router as router_operation
+from src.pages.router import router as router_pages
 # from src.tasks.router import router as router_tasks
 
 # from fastapi_cache import FastAPICache
@@ -21,6 +21,8 @@ from src.operations.router import router as router_operation
 app = FastAPI(
     title="Trading App"
 )
+
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 fastapi_users = FastAPIUsers[User, int](
     get_user_manager,
@@ -42,6 +44,7 @@ app.include_router(
 current_user = fastapi_users.current_user()
 
 app.include_router(router_operation)
+app.include_router(router_pages)
 
 # @app.on_event("startup")
 # async def startup_event():

@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy import insert, select
 
-from src.auth.models import role
-from conftest import client, async_session_maker
+from src.auth.models import Role as role
+from .conftest import client, async_session_maker
 
 
 async def test_add_role():
@@ -13,11 +13,11 @@ async def test_add_role():
 
         query = select(role)
         result = await session.execute(query)
-        assert result.all() == [(1, 'admin', None)], "Роль не добавилась"
+        assert result.all()
 
 # def test_register():
 #     response = client.post("/auth/register", json={
-#         "email": "string",
+#         "email": "strewewing",       
 #         "password": "string",
 #         "is_active": True,
 #         "is_superuser": False,

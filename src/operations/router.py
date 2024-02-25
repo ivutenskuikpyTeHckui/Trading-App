@@ -1,5 +1,5 @@
 import time
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,15 +16,32 @@ router = APIRouter(
     tags=["Operation"]
 )
 
-@router.get("/")
-async def get_specific_operations(operation_type: str, session: AsyncSession = Depends(get_async_session)):
-    query = select(operation).where(operation.c.type == operation_type)
-    result = await session.execute(query) 
-    return result.all()
+@router.get("")
+async def get_specific_operations(
+        operation_type: str,
+        session: AsyncSession = Depends(get_async_session),
+):
+    try:
+        query = select(operation).where(operation.type == operation_type)
+        result = await session.execute(query)
+        return {
+            "status": "success",
+            "data": result.scalars().all(),
+            "details": None
+        }
+    except Exception:
+        # Передать ошибку разработчикам
+        raise HTTPException(status_code=500, detail={
+            "status": "error",
+            "data": None,
+            "details": None
+        })
+
+# result.scalars().all() для выдачи в формате json
 
 @router.post("/")
 async def add_specific_operations(new_operation: OperationCreate, session: AsyncSession = Depends(get_async_session)):
-    stmt = insert(operation).values(**new_operation.dict())
+    stmt = insert(operation).values(**new_operation.model_dump())
     await session.execute(stmt)
     await session.commit()
     return {"status": "success"}
