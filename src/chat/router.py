@@ -1,8 +1,14 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from src.database import async_session_maker, get_async_session
+from src.chat.models import Message
+from sqlalchemy import insert, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-app = FastAPI()
 
+router = APIRouter(
+    prefix="/chat",
+    tags=["chat"]
+)
 
 class ConnectionManager:
     def __init__(self):
@@ -18,27 +24,40 @@ class ConnectionManager:
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
 
-    async def broadcast(self, message: str):
+    async def broadcast(self, message: str, add_to_db: bool):
+        if add_to_db:
+            await self.add_message_to_database(message)
         for connection in self.active_connections:
             await connection.send_text(message)
 
+    @staticmethod
+    async def add_message_to_database(message:str):
+        async with async_session_maker() as session:
+            stmt = insert(Message).values(message=message)
+            await session.execute(stmt)
+            await session.commit()
 
 manager = ConnectionManager()
 
+@router.get("/last_message")
+async def get_last_messsage(
+    session: AsyncSession = Depends(get_async_session)
+):
+    query = select(Message).order_by(Message.id.desc()).limit(5)
+    messages = await session.execute(query)
+    messages = messages.all()
+    messages_list = [msg[0].as_dict() for msg in messages]
+    return messages_list
 
-@app.get("/")
-async def get():
-    return HTMLResponse(html)
 
-
-@app.websocket("/ws/{client_id}")
+@router.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: int):
     await manager.connect(websocket)
     try:
         while True:
             data = await websocket.receive_text()
             await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client #{client_id} says: {data}")
+            await manager.broadcast(f"Client #{client_id} says: {data}", add_to_db=True)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-        await manager.broadcast(f"Client #{client_id} left the chat")
+        await manager.broadcast(f"Client #{client_id} left the chat", add_to_db=False)

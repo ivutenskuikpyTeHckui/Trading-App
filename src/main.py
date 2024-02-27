@@ -9,6 +9,7 @@ from src.auth.schemas import UserCreate, UserRead
 
 from src.operations.router import router as router_operation
 from src.pages.router import router as router_pages
+from src.chat.router import router as router_chat
 # from src.tasks.router import router as router_tasks
 
 # from fastapi_cache import FastAPICache
@@ -45,6 +46,7 @@ current_user = fastapi_users.current_user()
 
 app.include_router(router_operation)
 app.include_router(router_pages)
+app.include_router(router_chat)
 
 # @app.on_event("startup")
 # async def startup_event():
