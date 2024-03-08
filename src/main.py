@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status, Depends
+from fastapi import FastAPI, Request, status, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi_users import fastapi_users, FastAPIUsers
 
@@ -10,13 +10,6 @@ from src.auth.schemas import UserCreate, UserRead
 from src.operations.router import router as router_operation
 from src.pages.router import router as router_pages
 from src.chat.router import router as router_chat
-# from src.tasks.router import router as router_tasks
-
-# from fastapi_cache import FastAPICache
-# from fastapi_cache.backends.redis import RedisBackend
-
-# import redis
-# from redis import asyncio as aioredis
 
 
 app = FastAPI(
@@ -44,12 +37,9 @@ app.include_router(
 
 current_user = fastapi_users.current_user()
 
-app.include_router(router_operation)
-app.include_router(router_pages)
-app.include_router(router_chat)
-
-# @app.on_event("startup")
-# async def startup_event():
-#     r = redis.Redis(host="localhost", port=6379, decode_responses=True)
-#     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
-    
+@app.get("/example")
+def testing(user:UserRead = Depends(current_user)):
+    if user.is_project_manager== True:
+        return "yes"
+    else: 
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
