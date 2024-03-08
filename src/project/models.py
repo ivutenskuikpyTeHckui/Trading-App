@@ -19,7 +19,7 @@ class Project(Base):
     finished_at: Mapped[datetime.datetime] = mapped_column(nullable=False)
     project_manager_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
     project_manager: Mapped["User"] = relationship(back_populates="project")
-    employee: Mapped[] = mapped_column(nullable=False)
+    employee: Mapped[int] = mapped_column(ForeignKey("user.id"))
     chaine_of_stages: Mapped[] = mapped_column()
     files: Mapped[] = mapped_column()
     checkbox: Mapped[] = mapped_column()
