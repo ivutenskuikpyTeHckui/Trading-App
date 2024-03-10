@@ -8,7 +8,7 @@ from fastapi_users.db import SQLAlchemyBaseUserTable
 from src.types_for_models import intpk, str_100, created_at
 
 from src.database import Base
-from src.project.models import Project
+from src.project.models import Project, Stage, Task, Subtask
 
 class User(Base):
     __tablename__ = "user"
@@ -23,9 +23,14 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_project_manager: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     role_id: Mapped[int] = mapped_column(ForeignKey("role.id"))
-    role: Mapped["Role"] = relationship()    
-    project: Mapped["Project"] = relationship(back_populates="project_manager")
-    employee: Mapped[List["Project"]] = relationship()
+    role: Mapped["Role"] = relationship()
+    project_id_for_manager: Mapped[int] = mapped_column(ForeignKey("project.id"))
+    project_for_manager: Mapped["Project"] = relationship(back_populates="project_manager")
+    project_id_for_employee: Mapped[int] = mapped_column(ForeignKey("project.id"))
+    stage_id: Mapped[int] = mapped_column(ForeignKey("stage.id"))
+    task_id: Mapped[int] = mapped_column(ForeignKey("task.id"))
+    subtask_id: Mapped[int] = mapped_column(ForeignKey("subtask.id"))
+
 
 
 class Role(Base):

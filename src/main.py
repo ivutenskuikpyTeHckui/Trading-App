@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status, Depends, HTTPException
+from fastapi import FastAPI, Request, status, Depends, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi_users import fastapi_users, FastAPIUsers
 
@@ -7,16 +7,12 @@ from src.auth.manager import get_user_manager
 from src.auth.models import User
 from src.auth.schemas import UserCreate, UserRead
 
-from src.operations.router import router as router_operation
-from src.pages.router import router as router_pages
-from src.chat.router import router as router_chat
-
 
 app = FastAPI(
     title="Trading App"
 )
 
-app.mount("/static", StaticFiles(directory="src/static"), name="static")
+# app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 fastapi_users = FastAPIUsers[User, int](
     get_user_manager,
@@ -38,7 +34,7 @@ app.include_router(
 current_user = fastapi_users.current_user()
 
 @app.get("/example")
-def testing(user:UserRead = Depends(current_user)):
+def testing(user:UserRead = Depends(current_user), file: UploadFile = File(...)):
     if user.is_project_manager== True:
         return "yes"
     else: 

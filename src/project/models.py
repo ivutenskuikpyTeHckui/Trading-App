@@ -1,31 +1,88 @@
 from typing import List
 
 from src.database import Base
-from sqlalchemy import Table, Column, ForeignKey
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.types_for_models import intpk, created_at as time_creation
-from datetime import datetime
+import datetime
 from src.auth.models import User
-
-
 
 
 class Project(Base):
     __tablename__ = "project"
 
     id: Mapped[intpk]
-    description: Mapped[] = mapped_column(nullable=False) 
+    description: Mapped[str] = mapped_column(nullable=False) 
     created_at: Mapped[time_creation] = mapped_column(nullable=False)
     finished_at: Mapped[datetime.datetime] = mapped_column(nullable=False)
-    project_manager_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
     project_manager: Mapped["User"] = relationship(back_populates="project")
-    employee: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    chaine_of_stages: Mapped[] = mapped_column()
-    files: Mapped[] = mapped_column()
-    checkbox: Mapped[] = mapped_column()
-    trade_name: Mapped[] = mapped_column()
-    international_nonproprietary_name: Mapped[] = mapped_column()
-    chemical_name: Mapped[] = mapped_column()
-    type: Mapped[] = mapped_column()
+    employee: Mapped[List["User"]] = relationship()
+    stage: Mapped[List["Stage"]] = relationship()
+    file: Mapped[bytes] = mapped_column(nullable=True)
+    pharmaceutical_substances: Mapped[str] = mapped_column(nullable=True)
+    checkbox: Mapped[bool] = mapped_column(nullable=True)
+    trade_name: Mapped[str] = mapped_column(nullable=True)
+    international_nonproprietary_name: Mapped[str] = mapped_column(nullable=True)
+    chemical_name: Mapped[str] = mapped_column(nullable=True)
+    type: Mapped[str] = mapped_column(nullable=True)
 
+
+class Extension_Project(Base):
+    __tablename__ = "extension_project"
+
+    id: Mapped[intpk]
+    additional_column: Mapped[str] = mapped_column(nullable=False)
+    additional_value: Mapped[str] = mapped_column(nullable=False)
+
+
+class Stage(Base):
+    __tablename__ = "stage"
+
+    id: Mapped[intpk]
+    title: Mapped[str] = mapped_column(nullable=False)
+    previous_stage: Mapped[int] = mapped_column(nullable=True)
+    next_stage: Mapped[int] = mapped_column(nullable=True)
+    status: Mapped[str] = mapped_column(nullable=False)
+    performer: Mapped[List["User"]] = relationship()
+    created_at: Mapped[time_creation] = mapped_column(nullable=False)
+    finished_at: Mapped[datetime.datetime] = mapped_column()
+    description: Mapped[str] = mapped_column()
+    file: Mapped[bytes] = mapped_column(nullable=True)
+    task: Mapped[List["Task"]] = relationship()
+    project_id: Mapped[int] = mapped_column(ForeignKey("project.id"))
+
+class Task(Base):
+    __tablename__ = "task"
+
+    id: Mapped[intpk]
+    name: Mapped[str] = mapped_column(nullable=False)
+    status: Mapped[str] = mapped_column(nullable=False)
+    created_at: Mapped[time_creation]
+    finished_at: Mapped[datetime.datetime] = mapped_column(nullable=False)
+    performer: Mapped[List["User"]] = relationship()
+    comm: Mapped[List["Comment"]] = relationship()
+    subtask: Mapped[List["Subtask"]] = relationship()
+    stage_id: Mapped[int] = mapped_column(ForeignKey("task.id"))
+
+class Subtask(Base):
+    __tablename__ = "subtask"
+
+    id:Mapped[intpk]
+    name: Mapped[str] = mapped_column(nullable=False)
+    status: Mapped[str] = mapped_column(nullable=False)
+    created_at: Mapped[time_creation]
+    performer: Mapped[List["User"]] = relationship()
+    comm: Mapped[List["Comment"]] = relationship()
+    task_id: Mapped[int] = mapped_column(ForeignKey("task.id"))
+
+
+class Comment(Base):
+    __tablename__ = "comment"
+
+    id:Mapped[intpk]
+    comm:Mapped[str] = mapped_column(nullable=False)
+    task_id: Mapped[int] = mapped_column(ForeignKey("task.id"), nullable=True)
+    subtask_id: Mapped[int] = mapped_column(ForeignKey("subtask.id"), nullable=True)
+
+    
     
