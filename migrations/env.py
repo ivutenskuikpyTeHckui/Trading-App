@@ -7,6 +7,7 @@ from alembic import context
 
 from src.database import Base
 from src.auth.models import *
+from src.project.models import *
 
 
 from src.config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
